@@ -118,9 +118,9 @@ namespace Bambi5_Launcher
                  Turn_button.Text = "正在关闭";
                  Turn_Proxy_button.Enabled = false;
                  Turn_Proxy_button.Text = "正在关闭";
-                 Print_log("正在关闭游戏···");
                  if (Change_game && Game_Process != null && !Game_Process.HasExited)
                  {
+                     Print_log("正在关闭游戏···");
                      Game_Process.Kill();
                  }
                  Print_log("正在关闭代理···");

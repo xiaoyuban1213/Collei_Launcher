@@ -35,7 +35,6 @@ namespace Bambi5_Launcher
             Classes.SetCertificatePolicy();
         }
 
-
         private void Main_Form_Shown(object sender, EventArgs e)
         {
             bool isdebug = Classes.DebugBuild(Assembly.GetExecutingAssembly());
