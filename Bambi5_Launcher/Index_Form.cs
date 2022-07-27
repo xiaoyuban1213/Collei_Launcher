@@ -1,23 +1,54 @@
-﻿using Newtonsoft.Json;
+﻿using Fiddler;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Bambi5_Launcher
+namespace Collei_Launcher
 {
     public partial class Index_Form : Form
     {
         public Index_Form()
         {
+            Main_Form.form.Status_timer.Enabled = false;
             indexf = this;
+            pm = new Proxy_Mgr(this);
             InitializeComponent();
+            if (no_gamepath())
+            {
+                Turn_button.Enabled = false;
+                Turn_button.Text = "未设置游戏路径";
+            }
         }
         public static Index_Form indexf;
         public ServersItem_List server;
-        public Proxy_Mgr pm = new Proxy_Mgr();
+        public Proxy_Mgr pm;
         public bool cg = true;
+
+        public void On_BeforeRequest(Session oS)
+        {
+            if (oS.host.EndsWith(".yuanshen.com") || oS.host.EndsWith(".hoyoverse.com") || oS.host.EndsWith(".mihoyo.com"))
+            {
+                string ohost = oS.host + ":" + oS.port;
+                oS.host = Index_Form.indexf.server.host;
+                if (oS.port == 443 || oS.port == 80)
+                {
+                    oS.port = Index_Form.indexf.server.dispatch;
+                }
+                Index_Form.indexf.Print_log(ohost + " -> " + oS.host);
+            }
+            if (oS.port == 22102)
+            {
+                oS.port = Index_Form.indexf.server.game;
+            }
+        }
+        public bool no_gamepath()
+        {
+            return Main_Form.form.lc.config.Game_Path == null || Main_Form.form.lc.config.Game_Path == "";
+        }
         private void Private_Open_Index(ServersItem_List ser)
         {
             server = ser;
@@ -49,38 +80,53 @@ namespace Bambi5_Launcher
         }
         public void Print_log(string log)
         {
-                Log_richTextBox.AppendText(log + "\n");
-                Log_richTextBox.Focus();
-                Log_richTextBox.Select(Log_richTextBox.TextLength, 0);
-                Log_richTextBox.ScrollToCaret();
+            Log_richTextBox.AppendText(log + "\n");
+            Log_richTextBox.Focus();
+            Log_richTextBox.Select(Log_richTextBox.TextLength, 0);
+            Log_richTextBox.ScrollToCaret();
         }
         public Task Set_Proxy(bool Change_game)
         {
             return Task.Run(() =>
               {
-                 
+
               Start:
                   cg = Change_game;
+
                   if (Change_game)
                   {
                       Turn_button.Enabled = false;
                       Turn_button.Text = "正在连接";
+                      if (no_gamepath())
+                      {
+                          Turn_button.Enabled = false;
+                          Turn_button.Text = "未设置游戏路径";
+                      }
                   }
                   else
                   {
                       Turn_button.Enabled = false;
                       Turn_button.Text = "没有启动游戏";
+                      if (no_gamepath())
+                      {
+                          Turn_button.Enabled = false;
+                          Turn_button.Text = "未设置游戏路径";
+                      }
                   }
                   Turn_Proxy_button.Enabled = false;
                   Turn_Proxy_button.Text = "正在启动";
                   Print_log("正在配置代理···");
+                  Main_Form.form.Clear_Proxy();
                   Debug.Print(server.host);
-                  pm.Run_Fiddler(Main_Form.form.lc.config.ProxyPort).Wait();
+                  pm.Run_Fiddler().Wait();
+                  Main_Form.form.Set_Proxy("127.0.0.1:" + Main_Form.form.lc.config.ProxyPort);
                   Connected = true;
-                  Print_log("正在检查连接是否正常···");
-            if (!Check_Server())
+                  Print_log("正在检查服务器是否正常···");
+                  Thread.Sleep(1000);
+                  if (!Check_Server())
                   {
-                      DialogResult dialog = MessageBox.Show("此服务器的Dispatch似乎无法正常连接或代理配置出现问题,建议尝试检查连接，或联系服务器管理员检查服务器状态\n点击“终止”：取消此连接\n点击“重试”：再次检查连接状态\n点击“忽略”：继续连接到此服务器", "服务器连接异常", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Warning);
+                      Print_log("请求失败！");
+                      DialogResult dialog = MessageBox.Show("此服务器的Dispatch似乎无法正常连接,建议尝试检查服务器，或联系服务器管理员检查服务器状态\n当前系统代理配置:" + Main_Form.form.Get_Proxy_Text() + "" + "\n点击“终止”：取消此连接\n点击“重试”：再次检查连接状态\n点击“忽略”：继续连接到此服务器", "服务器连接异常", MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Warning);
                       if (dialog == DialogResult.Abort)
                       {
                           Stop_Proxy(Change_game).Wait();
@@ -91,8 +137,12 @@ namespace Bambi5_Launcher
                           Stop_Proxy(Change_game).Wait();
                           goto Start;
                       }
+                      Print_log("已忽略异常。");
                   }
-                  Print_log("检查完成！");
+                  else
+                  {
+                      Print_log("OK！");
+                  }
                   if (Change_game)
                   {
                       Print_log("正在启动游戏···");
@@ -116,6 +166,11 @@ namespace Bambi5_Launcher
              {
                  Turn_button.Enabled = false;
                  Turn_button.Text = "正在关闭";
+                 if (no_gamepath())
+                 {
+                     Turn_button.Enabled = false;
+                     Turn_button.Text = "未设置游戏路径";
+                 }
                  Turn_Proxy_button.Enabled = false;
                  Turn_Proxy_button.Text = "正在关闭";
                  if (Change_game && Game_Process != null && !Game_Process.HasExited)
@@ -125,8 +180,14 @@ namespace Bambi5_Launcher
                  }
                  Print_log("正在关闭代理···");
                  pm.Stop().Wait();
+                 Main_Form.form.Clear_Proxy();
                  Turn_button.Enabled = true;
                  Turn_button.Text = "开启代理并打开游戏";
+                 if (no_gamepath())
+                 {
+                     Turn_button.Enabled = false;
+                     Turn_button.Text = "未设置游戏路径";
+                 }
                  Turn_Proxy_button.Enabled = true;
                  Turn_Proxy_button.Text = "仅启动代理";
                  Print_log("已关闭");
@@ -146,9 +207,70 @@ namespace Bambi5_Launcher
             Debug.WriteLine(url);
             return url;
         }
+        public bool Uping_Status = false;
         public void Update_Status()
         {
+            if (Uping_Status)
+            {
+                return;
+            }
             Task.Run(() =>
+            {
+                Uping_Status = true;
+                string display = "";
+                bool error = false;
+                Index_Get ig = Classes.Get_for_Index(Get_url("/status/server"));
+                if (ig.Use_time >= 0)
+                {
+                    if (ig.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        Def_status.Root df = JsonConvert.DeserializeObject<Def_status.Root>(ig.Result);
+                        display += "当前服务器有" + df.status.playerCount + "人在线";
+                    }
+                    else
+                    {
+                        display += "获取服务器状态失败(" + ig.StatusCode.ToString() + ")";
+                        error = true;
+                    }
+                }
+                else
+                {
+                    display += "获取服务器状态失败(" + ig.Result + ")";
+                    error = true;
+                }
+                try
+                {
+                    Ping ping = new Ping();
+                start:
+                    PingReply pr = ping.Send(server.host, 1000);
+                    if (pr.RoundtripTime == 0)
+                    {
+                        goto start;
+                    }
+                    display += ",Ping:" + pr.RoundtripTime + "ms";
+                }
+                catch (Exception ex)
+                {
+                    display += ",Ping失败:" + ex.Message;
+                    error = true;
+                }
+                this.Server_status_toolStripStatusLabel.Text = display;
+                if (error)
+                {
+                    Server_status_toolStripStatusLabel.ForeColor = System.Drawing.Color.Red;
+                }
+                else
+                {
+                    Server_status_toolStripStatusLabel.ForeColor = System.Drawing.Color.Black;
+                }
+
+                Uping_Status = false;
+            });
+
+        }
+        public bool Check_Server()
+        {
+            try
             {
                 Index_Get ig = Classes.Get_for_Index(Get_url("/status/server"));
                 if (ig.Use_time >= 0)
@@ -156,35 +278,20 @@ namespace Bambi5_Launcher
                     if (ig.StatusCode == System.Net.HttpStatusCode.OK)
                     {
                         Def_status.Root df = JsonConvert.DeserializeObject<Def_status.Root>(ig.Result);
-                        Server_status_toolStripStatusLabel.Text = "当前服务器有" + df.status.playerCount + "人在线,请求用时:" + ig.Use_time+"ms";
-                        Server_status_toolStripStatusLabel.ForeColor = System.Drawing.Color.Black;
+                        return true;
                     }
                     else
                     {
-                        this.Server_status_toolStripStatusLabel.ForeColor = System.Drawing.Color.Red;
-                        Server_status_toolStripStatusLabel.Text = "获取服务器状态失败(" + ig.StatusCode.ToString() + ")";
-                        return;
+
+                        Print_log("请求失败(" + ig.StatusCode.ToString() + ")");
+                        return false;
                     }
                 }
                 else
                 {
-                    this.Server_status_toolStripStatusLabel.ForeColor = System.Drawing.Color.Red;
-                    Server_status_toolStripStatusLabel.Text = "获取服务器状态失败(" +ig.Result+")" ;
-                    return;
-                }
-            });
-        }
-        public bool Check_Server()
-        {
-            try
-            {
-                string res = Classes.Get("https://account.mihoyo.com/status/server");
-                if (res == null)
-                {
+                    Print_log("请求失败(" + ig.Result + ")");
                     return false;
                 }
-                Def_status.Root df = JsonConvert.DeserializeObject<Def_status.Root>(res);
-                return true;
             }
             catch
             {
@@ -209,7 +316,7 @@ namespace Bambi5_Launcher
                 {
                     Stop_Proxy(true).Wait();
                 }
-                else if (dialog == DialogResult.No||dialog == DialogResult.OK)
+                else if (dialog == DialogResult.No || dialog == DialogResult.OK)
                 {
                     Stop_Proxy(false).Wait();
                 }
@@ -242,6 +349,8 @@ namespace Bambi5_Launcher
         {
             Server_Status_timer.Stop();
             Main_Form.form.Clear_Proxy();
+            Main_Form.form.Status_timer.Enabled = true;
+            Main_Form.form.Load_Server_Status();
         }
     }
 }

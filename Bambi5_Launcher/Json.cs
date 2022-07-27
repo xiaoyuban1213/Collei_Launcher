@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net;
 
-namespace Bambi5_Launcher
+namespace Collei_Launcher
 {
     public class Index_Get
     {
@@ -15,7 +15,6 @@ namespace Bambi5_Launcher
     }
     public class Def_status
     {
-        //如果好用，请收藏地址，帮忙分享。
         public class Status
         {
             /// <summary>
@@ -124,11 +123,15 @@ namespace Bambi5_Launcher
             /// <summary>
             /// 
             /// </summary>
-            public string Game_Path = "";
+            public string Game_Path = Classes.GameRegReader.GetGameExePath();
 
             public ushort ProxyPort = 8520;
 
             public bool Auto_Close_Proxy = true;
+
+            public bool Show_Public_Server = true;
+
+            public int lastvercode;
         }
         public List<ServersItem> servers = new List<ServersItem>();
         /// <summary>
@@ -140,5 +143,5 @@ namespace Bambi5_Launcher
     {
         public bool ProxyEnable = false;
         public string ProxyServer { get; set; }
-    }
+}
 }

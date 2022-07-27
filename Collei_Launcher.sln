@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32407.343
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bambi5_Launcher", "Bambi5_Launcher\Bambi5_Launcher.csproj", "{CA1F143B-77B8-4F15-9BD7-BDDED1654120}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Collei_Launcher", "Bambi5_Launcher\Collei_Launcher.csproj", "{CA1F143B-77B8-4F15-9BD7-BDDED1654120}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

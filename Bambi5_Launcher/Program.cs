@@ -6,7 +6,7 @@ using System.Windows.Forms;
 using System.Text;
 using System.Threading;
 
-namespace Bambi5_Launcher
+namespace Collei_Launcher
 {
     public static class Program
     {

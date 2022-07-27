@@ -1,4 +1,4 @@
-﻿namespace Bambi5_Launcher
+﻿namespace Collei_Launcher
 {
     partial class Check_Form
     {
@@ -159,14 +159,14 @@
             this.Log_richTextBox.Location = new System.Drawing.Point(12, 121);
             this.Log_richTextBox.Name = "Log_richTextBox";
             this.Log_richTextBox.ReadOnly = true;
-            this.Log_richTextBox.Size = new System.Drawing.Size(478, 189);
+            this.Log_richTextBox.Size = new System.Drawing.Size(478, 264);
             this.Log_richTextBox.TabIndex = 60;
             this.Log_richTextBox.Text = "";
             // 
             // Check_button
             // 
             this.Check_button.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.Check_button.Location = new System.Drawing.Point(12, 316);
+            this.Check_button.Location = new System.Drawing.Point(12, 391);
             this.Check_button.Name = "Check_button";
             this.Check_button.Size = new System.Drawing.Size(150, 50);
             this.Check_button.TabIndex = 61;
@@ -179,7 +179,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 23F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.ClientSize = new System.Drawing.Size(502, 378);
+            this.ClientSize = new System.Drawing.Size(502, 453);
             this.Controls.Add(this.Check_button);
             this.Controls.Add(this.Log_richTextBox);
             this.Controls.Add(this.Game_Host_textBox);

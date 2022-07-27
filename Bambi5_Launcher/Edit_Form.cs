@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Bambi5_Launcher
+namespace Collei_Launcher
 {
     public partial class Edit_Form : Form
     {
@@ -66,30 +66,33 @@ namespace Bambi5_Launcher
         {
             if(!User_Close)
             {
-                DialogResult dialog = MessageBox.Show("是否保存更改?\n点击“是”：保存更改\n点击“否”：取消更改\n点击“取消”：取消关闭窗口", "是否保存更改?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-                if (dialog == DialogResult.Yes)
+                if (Title_textBox.Text != "" && Host_textBox.Text != "")
                 {
-                    if (Title_textBox.Text == "" || Host_textBox.Text == "")
+                    DialogResult dialog = MessageBox.Show("是否保存更改?\n点击“是”：保存更改\n点击“否”：取消更改\n点击“取消”：取消关闭窗口", "是否保存更改?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+                    if (dialog == DialogResult.Yes)
                     {
-                        MessageBox.Show("服务器名称或地址没有填写！", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        if (Title_textBox.Text == "" || Host_textBox.Text == "")
+                        {
+                            MessageBox.Show("服务器名称或地址没有填写！", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            e.Cancel = true;
+                            return;
+                        }
+                        rser = new ServersItem();
+                        rser.title = Title_textBox.Text;
+                        rser.host = Host_textBox.Text;
+                        rser.dispatch = (ushort)Dispatch_port_numericUpDown.Value;
+                        rser.game = (ushort)Game_port_numericUpDown.Value;
+                        rser.content = Content_textBox.Text;
+                    }
+                    else if (dialog == DialogResult.No)
+                    {
+                        rser = null;
+                    }
+                    else if (dialog == DialogResult.Cancel)
+                    {
                         e.Cancel = true;
                         return;
                     }
-                    rser = new ServersItem();
-                    rser.title = Title_textBox.Text;
-                    rser.host = Host_textBox.Text;
-                    rser.dispatch = (ushort)Dispatch_port_numericUpDown.Value;
-                    rser.game = (ushort)Game_port_numericUpDown.Value;
-                    rser.content = Content_textBox.Text;
-                }
-                else if(dialog == DialogResult.No)
-                {
-                    rser = null;
-                }
-                else if(dialog == DialogResult.Cancel)
-                {
-                    e.Cancel = true;
-                    return;
                 }
             }
         }

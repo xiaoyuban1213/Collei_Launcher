@@ -1,4 +1,4 @@
-﻿namespace Bambi5_Launcher
+﻿namespace Collei_Launcher
 {
     partial class Edit_Form
     {

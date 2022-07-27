@@ -1,5 +1,5 @@
 ﻿
-namespace Bambi5_Launcher
+namespace Collei_Launcher
 {
     partial class Main_Form
     {
@@ -36,6 +36,8 @@ namespace Bambi5_Launcher
             "loading",
             "loading",
             "N/A",
+            "N/A",
+            "N/A",
             "Loading···"}, -1);
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main_Form));
             this.Main_tabControl = new System.Windows.Forms.TabControl();
@@ -47,8 +49,12 @@ namespace Bambi5_Launcher
             this.Date_columnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Dispatch_columnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Game_columnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Count_columnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Ver_columnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Ping_columnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Content_columnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Settings_tabPage = new System.Windows.Forms.TabPage();
+            this.Find_GameExe_button = new System.Windows.Forms.Button();
             this.Open_Check_button = new System.Windows.Forms.Button();
             this.Save_proxy_button = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
@@ -70,7 +76,6 @@ namespace Bambi5_Launcher
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.编辑ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.删除ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.Count_columnHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Status_timer = new System.Windows.Forms.Timer(this.components);
             this.Main_tabControl.SuspendLayout();
             this.Home_tabPage.SuspendLayout();
@@ -92,7 +97,7 @@ namespace Bambi5_Launcher
             this.Main_tabControl.Location = new System.Drawing.Point(12, 12);
             this.Main_tabControl.Name = "Main_tabControl";
             this.Main_tabControl.SelectedIndex = 0;
-            this.Main_tabControl.Size = new System.Drawing.Size(608, 429);
+            this.Main_tabControl.Size = new System.Drawing.Size(658, 429);
             this.Main_tabControl.TabIndex = 1;
             // 
             // Home_tabPage
@@ -101,7 +106,7 @@ namespace Bambi5_Launcher
             this.Home_tabPage.Location = new System.Drawing.Point(4, 32);
             this.Home_tabPage.Name = "Home_tabPage";
             this.Home_tabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.Home_tabPage.Size = new System.Drawing.Size(600, 393);
+            this.Home_tabPage.Size = new System.Drawing.Size(650, 393);
             this.Home_tabPage.TabIndex = 1;
             this.Home_tabPage.Text = "主页";
             this.Home_tabPage.UseVisualStyleBackColor = true;
@@ -113,7 +118,7 @@ namespace Bambi5_Launcher
             this.Notice_label.Font = new System.Drawing.Font("微软雅黑", 15F);
             this.Notice_label.Location = new System.Drawing.Point(3, 3);
             this.Notice_label.Name = "Notice_label";
-            this.Notice_label.Size = new System.Drawing.Size(594, 387);
+            this.Notice_label.Size = new System.Drawing.Size(644, 387);
             this.Notice_label.TabIndex = 0;
             this.Notice_label.Text = "正在加载公告···";
             this.Notice_label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -124,11 +129,12 @@ namespace Bambi5_Launcher
             this.Servers_List_tabPage.Location = new System.Drawing.Point(4, 32);
             this.Servers_List_tabPage.Name = "Servers_List_tabPage";
             this.Servers_List_tabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.Servers_List_tabPage.Size = new System.Drawing.Size(600, 393);
+            this.Servers_List_tabPage.Size = new System.Drawing.Size(650, 393);
             this.Servers_List_tabPage.TabIndex = 2;
             this.Servers_List_tabPage.Text = "服务器列表";
             this.Servers_List_tabPage.UseVisualStyleBackColor = true;
             this.Servers_List_tabPage.Enter += new System.EventHandler(this.Servers_List_tabPage_Enter);
+            this.Servers_List_tabPage.Leave += new System.EventHandler(this.Servers_List_tabPage_Leave);
             // 
             // Servers_listView
             // 
@@ -139,6 +145,8 @@ namespace Bambi5_Launcher
             this.Dispatch_columnHeader,
             this.Game_columnHeader,
             this.Count_columnHeader,
+            this.Ver_columnHeader,
+            this.Ping_columnHeader,
             this.Content_columnHeader});
             this.Servers_listView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.Servers_listView.Font = new System.Drawing.Font("微软雅黑", 10F);
@@ -152,7 +160,7 @@ namespace Bambi5_Launcher
             this.Servers_listView.MultiSelect = false;
             this.Servers_listView.Name = "Servers_listView";
             this.Servers_listView.ShowGroups = false;
-            this.Servers_listView.Size = new System.Drawing.Size(594, 387);
+            this.Servers_listView.Size = new System.Drawing.Size(644, 387);
             this.Servers_listView.TabIndex = 9;
             this.Servers_listView.UseCompatibleStateImageBehavior = false;
             this.Servers_listView.View = System.Windows.Forms.View.Details;
@@ -171,13 +179,25 @@ namespace Bambi5_Launcher
             // 
             // Dispatch_columnHeader
             // 
-            this.Dispatch_columnHeader.Text = "Dispatch端口";
-            this.Dispatch_columnHeader.Width = 100;
+            this.Dispatch_columnHeader.Text = "Dispatch";
+            this.Dispatch_columnHeader.Width = 75;
             // 
             // Game_columnHeader
             // 
-            this.Game_columnHeader.Text = "Game端口";
-            this.Game_columnHeader.Width = 100;
+            this.Game_columnHeader.Text = "Game";
+            // 
+            // Count_columnHeader
+            // 
+            this.Count_columnHeader.Text = "在线数";
+            // 
+            // Ver_columnHeader
+            // 
+            this.Ver_columnHeader.Text = "版本";
+            this.Ver_columnHeader.Width = 75;
+            // 
+            // Ping_columnHeader
+            // 
+            this.Ping_columnHeader.Text = "Ping";
             // 
             // Content_columnHeader
             // 
@@ -186,6 +206,7 @@ namespace Bambi5_Launcher
             // 
             // Settings_tabPage
             // 
+            this.Settings_tabPage.Controls.Add(this.Find_GameExe_button);
             this.Settings_tabPage.Controls.Add(this.Open_Check_button);
             this.Settings_tabPage.Controls.Add(this.Save_proxy_button);
             this.Settings_tabPage.Controls.Add(this.label3);
@@ -199,10 +220,20 @@ namespace Bambi5_Launcher
             this.Settings_tabPage.Location = new System.Drawing.Point(4, 32);
             this.Settings_tabPage.Name = "Settings_tabPage";
             this.Settings_tabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.Settings_tabPage.Size = new System.Drawing.Size(600, 393);
+            this.Settings_tabPage.Size = new System.Drawing.Size(650, 393);
             this.Settings_tabPage.TabIndex = 0;
             this.Settings_tabPage.Text = "设置";
             this.Settings_tabPage.UseVisualStyleBackColor = true;
+            // 
+            // Find_GameExe_button
+            // 
+            this.Find_GameExe_button.Location = new System.Drawing.Point(13, 158);
+            this.Find_GameExe_button.Name = "Find_GameExe_button";
+            this.Find_GameExe_button.Size = new System.Drawing.Size(158, 50);
+            this.Find_GameExe_button.TabIndex = 14;
+            this.Find_GameExe_button.Text = "尝试自动选择文件";
+            this.Find_GameExe_button.UseVisualStyleBackColor = true;
+            this.Find_GameExe_button.Click += new System.EventHandler(this.Find_GameExe_button_Click);
             // 
             // Open_Check_button
             // 
@@ -227,7 +258,7 @@ namespace Bambi5_Launcher
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(9, 165);
+            this.label3.Location = new System.Drawing.Point(6, 211);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(497, 23);
             this.label3.TabIndex = 12;
@@ -235,11 +266,11 @@ namespace Bambi5_Launcher
             // 
             // Choice_Game_Path_button
             // 
-            this.Choice_Game_Path_button.Location = new System.Drawing.Point(497, 112);
+            this.Choice_Game_Path_button.Location = new System.Drawing.Point(177, 158);
             this.Choice_Game_Path_button.Name = "Choice_Game_Path_button";
-            this.Choice_Game_Path_button.Size = new System.Drawing.Size(100, 50);
+            this.Choice_Game_Path_button.Size = new System.Drawing.Size(146, 50);
             this.Choice_Game_Path_button.TabIndex = 11;
-            this.Choice_Game_Path_button.Text = "选择文件";
+            this.Choice_Game_Path_button.Text = "手动选择文件";
             this.Choice_Game_Path_button.UseVisualStyleBackColor = true;
             this.Choice_Game_Path_button.Click += new System.EventHandler(this.Choice_Game_Path_button_Click);
             // 
@@ -248,7 +279,7 @@ namespace Bambi5_Launcher
             this.Game_Path_textBox.Location = new System.Drawing.Point(97, 123);
             this.Game_Path_textBox.Name = "Game_Path_textBox";
             this.Game_Path_textBox.ReadOnly = true;
-            this.Game_Path_textBox.Size = new System.Drawing.Size(394, 29);
+            this.Game_Path_textBox.Size = new System.Drawing.Size(547, 29);
             this.Game_Path_textBox.TabIndex = 10;
             this.Game_Path_textBox.TextChanged += new System.EventHandler(this.Game_Path_textBox_TextChanged);
             // 
@@ -327,7 +358,7 @@ namespace Bambi5_Launcher
             this.Proxy_status_toolStripStatusLabel});
             this.Main_statusStrip.Location = new System.Drawing.Point(0, 449);
             this.Main_statusStrip.Name = "Main_statusStrip";
-            this.Main_statusStrip.Size = new System.Drawing.Size(632, 29);
+            this.Main_statusStrip.Size = new System.Drawing.Size(682, 29);
             this.Main_statusStrip.TabIndex = 2;
             this.Main_statusStrip.Text = "Status";
             // 
@@ -344,7 +375,7 @@ namespace Bambi5_Launcher
             this.Bambi5_linkLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.Bambi5_linkLabel.AutoSize = true;
             this.Bambi5_linkLabel.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.Bambi5_linkLabel.Location = new System.Drawing.Point(523, 455);
+            this.Bambi5_linkLabel.Location = new System.Drawing.Point(573, 455);
             this.Bambi5_linkLabel.Name = "Bambi5_linkLabel";
             this.Bambi5_linkLabel.Size = new System.Drawing.Size(97, 23);
             this.Bambi5_linkLabel.TabIndex = 3;
@@ -369,7 +400,7 @@ namespace Bambi5_Launcher
             // 
             // 添加ToolStripMenuItem
             // 
-            this.添加ToolStripMenuItem.Image = global::Bambi5_Launcher.Properties.Resources.添加;
+            this.添加ToolStripMenuItem.Image = global::Collei_Launcher.Properties.Resources.添加;
             this.添加ToolStripMenuItem.Name = "添加ToolStripMenuItem";
             this.添加ToolStripMenuItem.Size = new System.Drawing.Size(172, 32);
             this.添加ToolStripMenuItem.Text = "添加";
@@ -382,7 +413,7 @@ namespace Bambi5_Launcher
             // 
             // 连接ToolStripMenuItem
             // 
-            this.连接ToolStripMenuItem.Image = global::Bambi5_Launcher.Properties.Resources.启动;
+            this.连接ToolStripMenuItem.Image = global::Collei_Launcher.Properties.Resources.启动;
             this.连接ToolStripMenuItem.Name = "连接ToolStripMenuItem";
             this.连接ToolStripMenuItem.Size = new System.Drawing.Size(172, 32);
             this.连接ToolStripMenuItem.Text = "连接";
@@ -390,7 +421,7 @@ namespace Bambi5_Launcher
             // 
             // 检查连接ToolStripMenuItem
             // 
-            this.检查连接ToolStripMenuItem.Image = global::Bambi5_Launcher.Properties.Resources.搜索;
+            this.检查连接ToolStripMenuItem.Image = global::Collei_Launcher.Properties.Resources.搜索;
             this.检查连接ToolStripMenuItem.Name = "检查连接ToolStripMenuItem";
             this.检查连接ToolStripMenuItem.Size = new System.Drawing.Size(172, 32);
             this.检查连接ToolStripMenuItem.Text = "检查连接";
@@ -403,7 +434,7 @@ namespace Bambi5_Launcher
             // 
             // 编辑ToolStripMenuItem
             // 
-            this.编辑ToolStripMenuItem.Image = global::Bambi5_Launcher.Properties.Resources.编辑;
+            this.编辑ToolStripMenuItem.Image = global::Collei_Launcher.Properties.Resources.编辑;
             this.编辑ToolStripMenuItem.Name = "编辑ToolStripMenuItem";
             this.编辑ToolStripMenuItem.Size = new System.Drawing.Size(172, 32);
             this.编辑ToolStripMenuItem.Text = "编辑";
@@ -411,16 +442,11 @@ namespace Bambi5_Launcher
             // 
             // 删除ToolStripMenuItem
             // 
-            this.删除ToolStripMenuItem.Image = global::Bambi5_Launcher.Properties.Resources.删除;
+            this.删除ToolStripMenuItem.Image = global::Collei_Launcher.Properties.Resources.删除;
             this.删除ToolStripMenuItem.Name = "删除ToolStripMenuItem";
             this.删除ToolStripMenuItem.Size = new System.Drawing.Size(172, 32);
             this.删除ToolStripMenuItem.Text = "删除";
             this.删除ToolStripMenuItem.Click += new System.EventHandler(this.删除ToolStripMenuItem_Click);
-            // 
-            // Count_columnHeader
-            // 
-            this.Count_columnHeader.Text = "在线人数";
-            this.Count_columnHeader.Width = 80;
             // 
             // Status_timer
             // 
@@ -434,7 +460,7 @@ namespace Bambi5_Launcher
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.ClientSize = new System.Drawing.Size(632, 478);
+            this.ClientSize = new System.Drawing.Size(682, 478);
             this.Controls.Add(this.Bambi5_linkLabel);
             this.Controls.Add(this.Main_statusStrip);
             this.Controls.Add(this.Main_tabControl);
@@ -442,12 +468,13 @@ namespace Bambi5_Launcher
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(650, 525);
+            this.MinimumSize = new System.Drawing.Size(700, 525);
             this.Name = "Main_Form";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "割草机启动器";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_Form_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Main_Form_FormClosed);
             this.Shown += new System.EventHandler(this.Main_Form_Shown);
             this.Main_tabControl.ResumeLayout(false);
             this.Home_tabPage.ResumeLayout(false);
@@ -495,9 +522,12 @@ namespace Bambi5_Launcher
         public System.Windows.Forms.Label label3;
         public System.Windows.Forms.Button Save_proxy_button;
         public System.Windows.Forms.Button Open_Check_button;
-        private System.Windows.Forms.ToolStripMenuItem 检查连接ToolStripMenuItem;
-        private System.Windows.Forms.ColumnHeader Count_columnHeader;
-        private System.Windows.Forms.Timer Status_timer;
+        public System.Windows.Forms.Button Find_GameExe_button;
+        public System.Windows.Forms.ToolStripMenuItem 检查连接ToolStripMenuItem;
+        public System.Windows.Forms.ColumnHeader Count_columnHeader;
+        public System.Windows.Forms.Timer Status_timer;
+        public System.Windows.Forms.ColumnHeader Ver_columnHeader;
+        public System.Windows.Forms.ColumnHeader Ping_columnHeader;
     }
 }
 

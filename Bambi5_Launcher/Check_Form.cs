@@ -7,12 +7,14 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Bambi5_Launcher
+namespace Collei_Launcher
 {
     public partial class Check_Form : Form
     {
@@ -101,8 +103,37 @@ namespace Bambi5_Launcher
                 {
                     Log_Print("获取服务器状态失败(" + ig.Result + ")");
                 }
-                bool TimeOut = true;
-                var tk = Task.Run(() =>
+                Log_Print("正在获取服务器延迟···");
+                try
+                {
+                    Ping ping = new Ping();
+                start:
+                    PingReply pr = ping.Send(host, 1000);
+                    
+                    if (pr.RoundtripTime == 0&& pr.Status == IPStatus.Success)
+                    {
+                        Debug.Print("Ping retry");
+                        goto start;
+                    }
+                    else if(pr.RoundtripTime == 0)
+                    {
+                        Log_Print("Ping失败:" + pr.Status.ToString());
+                    }
+                    else
+                    {
+                        Log_Print("Ping:" + pr.RoundtripTime + "ms");
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Log_Print("Ping失败:" + ex.Message);
+                }
+                int maxtime = 3000;
+                bool timeout = true;
+                bool print = true;
+                bool ok=false;
+                var tk = new Thread(new ThreadStart(delegate
                 {
                     DateTime sdt = DateTime.Now;
                     Log_Print("正在获取conv···");
@@ -113,16 +144,18 @@ namespace Bambi5_Launcher
                     }
                     catch
                     {
+                        if (!print)
+                            return;
                         Log_Print("解析域名失败: " + gamehost);
                         Log_Print("服务器Game端口无法连接！");
-                        TimeOut = false;
                         return;
                     }
                     if (hostEntry.AddressList.Length == 0)
                     {
+                        if (!print)
+                            return;
                         Log_Print("解析域名失败: " + gamehost);
                         Log_Print("服务器Game端口无法连接！");
-                        TimeOut = false;
                         return;
                     }
                     var endpoint = hostEntry.AddressList[0];
@@ -146,45 +179,54 @@ namespace Bambi5_Launcher
                             c++;
                         }
                         Console.WriteLine(ret + "," + c);
-
-                        if (Classes.ConvertDateTimeToInt(DateTime.Now) - Classes.ConvertDateTimeToInt(sdt) < 2500)
-                        {
-                            TimeOut = false;
-                            Log_Print("服务器返回conv:" + ret);
-                            Log_Print("服务器Game端口正常！");
-                        }
+                        timeout = false;
+                        ok= true;
+                        if (!print)
+                            return;
+                        Log_Print("服务器返回conv:" + ret);
+                        Log_Print("服务器Game端口正常！");
                     }
                     catch (ArgumentNullException e)
                     {
-                        if (Classes.ConvertDateTimeToInt(DateTime.Now) - Classes.ConvertDateTimeToInt(sdt) < 2500)
-                        {
-                            TimeOut = false;
-                            Log_Print("ArgumentNullException:" + e.Message);
-                            Log_Print("服务器Game端口无法连接！");
-                        }
+                        if (!print)
+                            return;
+                        Log_Print("ArgumentNullException:" + e.Message);
+                        Log_Print("服务器Game端口无法连接！");
                     }
                     catch (SocketException e)
                     {
-                        if (Classes.ConvertDateTimeToInt(DateTime.Now) - Classes.ConvertDateTimeToInt(sdt) < 2500)
-                        {
-                            TimeOut = false;
-                            Log_Print("SocketException:" + e.Message);
-                            Log_Print("服务器Game端口无法连接！");
-                        }
+                        if (!print)
+                            return;
+                        Log_Print("SocketException:" + e.Message);
+                        Log_Print("服务器Game端口无法连接！");
+                    }
+                    catch (ThreadAbortException)
+                    {
+
                     }
                     catch (Exception e)
                     {
-                        if (Classes.ConvertDateTimeToInt(DateTime.Now) - Classes.ConvertDateTimeToInt(sdt) < 2500)
-                        {
-                            TimeOut = false;
-                            Log_Print("Exception:" + e.Message);
-                            Log_Print("服务器Game端口无法连接！");
-                        }
+                        if (!print)
+                            return;
+                        Log_Print("Exception:" + e.Message);
+                        Log_Print("服务器Game端口无法连接！");
                     }
-                });
-                tk.Wait(3000);
-                if (TimeOut)
+                }));
+                tk.Start();
+                int j = 0;
+                while(!ok)
                 {
+                    if(j*100>=maxtime)
+                    {
+                        break;
+                    }
+                    Thread.Sleep(100);
+                    j++;
+                }
+                if (timeout)
+                {
+                    tk.Abort();
+                    print = false;
                     Log_Print("服务器Game端口连接超时！");
                 }
                 Log_Print("检查完成");

@@ -9,8 +9,10 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
-using Bambi5_Launcher;
+using Collei_Launcher;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using Microsoft.Win32;
 
 public static class Classes
 {
@@ -112,7 +114,9 @@ public static class Classes
     {
         try
         {
-            SetCertificatePolicy();
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
             string result = "";
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url);
             req.Method = "POST";
@@ -172,6 +176,7 @@ public static class Classes
         return dt;
         //System.Console.WriteLine(dt.ToString("yyyy/MM/dd HH:mm:ss:ffff"));
     }
+    /*
     /// <summary>
     /// 设置证书安全性
     /// </summary>
@@ -179,7 +184,7 @@ public static class Classes
     {
         ServicePointManager.ServerCertificateValidationCallback += RemoteCertificateValidate;
     }
-
+    */
     ///  <summary>
     ///  远程证书验证
     ///  </summary>
@@ -187,11 +192,29 @@ public static class Classes
     {
         return true;
     }
+    public static bool isValidFileContent(string filePath1, string filePath2)
+    {
+        //创建一个哈希算法对象
+        using (HashAlgorithm hash = HashAlgorithm.Create())
+        {
+            using (FileStream file1 = new FileStream(filePath1, FileMode.Open), file2 = new FileStream(filePath2, FileMode.Open))
+            {
+                byte[] hashByte1 = hash.ComputeHash(file1);//哈希算法根据文本得到哈希码的字节数组
+                byte[] hashByte2 = hash.ComputeHash(file2);
+                string str1 = BitConverter.ToString(hashByte1);//将字节数组装换为字符串
+                string str2 = BitConverter.ToString(hashByte2);
+                return (str1 == str2);//比较哈希码
+            }
+        }
+    }
+
     public static string Get(string url)
     {
         try
         {
-            SetCertificatePolicy();
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
             DateTime st = DateTime.Now;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Timeout = 3000;
@@ -212,7 +235,9 @@ public static class Classes
     {
         var tk = Task.Run(() =>
         {
-            SetCertificatePolicy();
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
             DateTime st = DateTime.Now;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Timeout = 3000;
@@ -257,6 +282,107 @@ public static class Classes
         tk.Wait(3000);
         return tk.Result;
 
+    }
+    public static class GameRegReader
+    {
+        /// <summary>
+        /// 获取游戏目录，是静态方法
+        /// </summary>
+        /// <returns></returns>
+        public static string GetGamePath()
+        {
+            try
+            {
+                string startpath = "";
+                string launcherpath = GetLauncherPath();
+                #region 获取游戏启动路径，和官方配置一致
+                string cfgPath = Path.Combine(launcherpath, "config.ini");
+                if (File.Exists(launcherpath) || File.Exists(cfgPath))
+                {
+                    //获取游戏本体路径
+                    using (StreamReader reader = new StreamReader(cfgPath))
+                    {
+                        string[] abc = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.None);
+                        foreach (var item in abc)
+                        {
+                            //从官方获取更多配置
+                            if (item.IndexOf("game_install_path") != -1)
+                            {
+                                startpath += item.Substring(item.IndexOf("=") + 1);
+                            }
+                        }
+                    }
+                }
+                byte[] bytearr = Encoding.UTF8.GetBytes(startpath);
+                string path = Encoding.UTF8.GetString(bytearr);
+                return path;
+            }
+            catch
+            {
+                return null;
+            }
+            #endregion
+        }
+
+
+        /// <summary>
+        /// 启动器地址
+        /// </summary>
+        /// <returns></returns>
+        public static string GetLauncherPath()
+        {
+            try
+            {
+                RegistryKey key = Registry.LocalMachine;            //打开指定注册表根
+                                                                    //获取官方启动器路径
+                string launcherpath = "";
+                try
+                {
+                    launcherpath = key.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\原神").GetValue("InstallPath").ToString();
+                    
+
+                }
+                catch (Exception)
+                {
+                    launcherpath = key.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Genshin Impact").GetValue("InstallPath").ToString();
+
+                }
+
+                byte[] bytepath = Encoding.UTF8.GetBytes(launcherpath);     //编码转换
+                string path = Encoding.UTF8.GetString(bytepath);
+                return path;
+
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static string GetGameExePath()
+        {
+            
+            var gamepath = GameRegReader.GetGamePath();
+            if(gamepath == null)
+            {
+                return null;
+            }
+            var cnpath = gamepath + @"/YuanShen.exe";
+            var ospath = gamepath + @"/GenshinImpact.exe";
+
+            if (File.Exists(cnpath))
+            {
+                return cnpath;
+            }
+            else if(File.Exists(ospath))
+            {
+                return ospath;
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }
 

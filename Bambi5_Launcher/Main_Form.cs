@@ -4,19 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Bambi5_Launcher
+namespace Collei_Launcher
 {
     public partial class Main_Form : Form
     {
 
         public bool loaded = false;
         public static Main_Form form;
-        public bool Show_Public_Server = true;
         public bool is_loading_cc = false;
         public int VerCode;
         public Cloud_Config cc;
@@ -32,7 +32,7 @@ namespace Bambi5_Launcher
             Control.CheckForIllegalCrossThreadCalls = false;
             form = this;
             InitializeComponent();
-            Classes.SetCertificatePolicy();
+            //Classes.SetCertificatePolicy();
         }
 
         private void Main_Form_Shown(object sender, EventArgs e)
@@ -72,6 +72,7 @@ namespace Bambi5_Launcher
             using (RegistryKey regkey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true))
             {
                 regkey.SetValue("ProxyEnable", 1);
+                regkey.SetValue("ProxyHttp1.1", 1);
                 regkey.SetValue("ProxyServer", proxy);
             }
         }
@@ -80,7 +81,15 @@ namespace Bambi5_Launcher
         {
             using (RegistryKey regkey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true))
             {
-                regkey.SetValue("ProxyEnable", 0);
+                try
+                {
+                    regkey.SetValue("ProxyEnable", 0);
+                    regkey.DeleteValue("ProxyServer");
+                }
+                catch (Exception e)
+                {
+                    Debug.Print(e.Message);
+                }
             }
         }
 
@@ -172,16 +181,21 @@ namespace Bambi5_Launcher
                     cc = JsonConvert.DeserializeObject<Cloud_Config>(ccs);
                     Notice_label.Text = cc.config.Notice;
                     Notice_label.ForeColor = System.Drawing.Color.Black;
-                    if (is_first_check && VerCode < cc.config.lastvercode)
+                    if (is_first_check && VerCode < cc.config.lastvercode && lc.config.lastvercode != cc.config.lastvercode)
                     {
                         string show = "发现有新版本，是否更新?";
                         show += "\n[当前版本]:" + VerCode;
                         show += "\n[最新版本]:" + cc.config.lastvercode;
                         show += "\n[更新内容]:" + cc.config.lastverstr;
-                        show += "\n点击“是”，跳转到更新连接\n点击“否”，关闭此消息框";
-                        if (MessageBox.Show(show, "版本更新提醒", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                        show += "\n点击“是”，跳转到更新连接\n点击“否”，跳过此版本\n点击“取消”，本次关闭此消息框";
+                        DialogResult dgr = MessageBox.Show(show, "版本更新提醒", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Information);
+                        if (dgr == DialogResult.Yes)
                         {
                             System.Diagnostics.Process.Start("https://amfeng.cn/196.html");
+                        }
+                        else if (dgr == DialogResult.No)
+                        {
+                            lc.config.lastvercode = cc.config.lastvercode;
                         }
                     }
                     is_first_check = false;
@@ -199,6 +213,7 @@ namespace Bambi5_Launcher
         private void Auto_close_proxy_checkBox_CheckedChanged(object sender, EventArgs e)
         {
             lc.config.Auto_Close_Proxy = Auto_close_proxy_checkBox.Checked;
+            Save_Local_Config();
         }
 
         private void Main_Form_FormClosing(object sender, FormClosingEventArgs e)
@@ -211,11 +226,6 @@ namespace Bambi5_Launcher
         }
         public void Load_Local_Config()
         {
-            using (RegistryKey regkey = Registry.CurrentUser.CreateSubKey(@"Software\Bambi5\Launcher"))
-            {
-                Show_Public_Server = (string)regkey.GetValue("Show_Public_Server") != "False";
-                Show_Public_Server_checkBox.Checked = Show_Public_Server;
-            }
             Debug.Print(config_path);
             if (File.Exists(config_path))
             {
@@ -251,16 +261,13 @@ namespace Bambi5_Launcher
         }
         private void Show_Public_Server_checkBox_CheckedChanged(object sender, EventArgs e)
         {
-            using (RegistryKey regkey = Registry.CurrentUser.CreateSubKey(@"Software\Bambi5\Launcher"))
-            {
-                Show_Public_Server = Show_Public_Server_checkBox.Checked;
-                regkey.SetValue("Show_Public_Server", Show_Public_Server_checkBox.Checked);
-            }
+            lc.config.Show_Public_Server = Show_Public_Server_checkBox.Checked;
+            Save_Local_Config();
         }
         public void Load_Servers()
         {
             servers.Clear();
-            if (Show_Public_Server && cc != null)
+            if (lc.config.Show_Public_Server && cc != null)
             {
                 for (int i = 0; i < cc.servers.Count; i++)
                 {
@@ -301,6 +308,8 @@ namespace Bambi5_Launcher
                 lvi.SubItems.Add(servers[i].dispatch + "");
                 lvi.SubItems.Add(servers[i].game + "");
                 lvi.SubItems.Add("N/A");
+                lvi.SubItems.Add("N/A");
+                lvi.SubItems.Add("N/A");
                 lvi.SubItems.Add(servers[i].content + "");
                 if (servers[i].is_cloud)
                 {
@@ -314,7 +323,7 @@ namespace Bambi5_Launcher
                 Servers_listView.Items.Add(lvi);
             }
             Servers_listView.EndUpdate();
-            Load_Player_Count();
+            Load_Server_Status();
         }
         public void Save_Local_Config()
         {
@@ -367,8 +376,13 @@ namespace Bambi5_Launcher
 
         private void Servers_List_tabPage_Enter(object sender, EventArgs e)
         {
+            Status_timer.Enabled = true;
             if (!is_loading_cc)
+            {
                 Load_Servers();
+                Load_Server_Status();
+            }
+            
         }
 
         private void Servers_listView_MouseDown(object sender, MouseEventArgs e)
@@ -448,32 +462,10 @@ namespace Bambi5_Launcher
 
         private void 连接ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (Main_Form.form.lc.config.Game_Path == null || Main_Form.form.lc.config.Game_Path == "")
+            if (cc != null && cc.config.blacklist.Contains(servers[ci].host))
             {
-                MessageBox.Show("请选择游戏文件", "", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                string path = Main_Form.form.Choice_Game_Path();
-                if (path == null)
-                {
-                    return;
-                }
-                Main_Form.form.lc.config.Game_Path = path;
-                Main_Form.form.Save_Local_Config();
-            }
-            if (cc != null&&cc.config.blacklist.Contains(servers[ci].host))
-            {
-                DialogResult dialog = MessageBox.Show("此服务器似乎是一个圈钱服务器，不建议连接，割草机是一个开源且免费的项目，推荐使用公共服务器体验游戏\n点击“是”：继续连接\n点击“否”：取消连接并查看割草机开源项目\n点击“取消”：取消连接到此服务器", "确定连接此服务器?", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-                if (dialog == DialogResult.Yes)
-                {
-                    Index_Form.Open_Index(servers[ci]);
-                }
-                else if (dialog == DialogResult.No)
-                {
-                    Process.Start("https://github.com/Grasscutters/Grasscutter");
-                }
-                else if (dialog == DialogResult.Cancel)
-                {
-                    return;
-                }
+                MessageBox.Show("此服务器在黑名单中，启动器拒绝连接到此服务器\n如有疑问，请联系bambi@bambi5.top", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
             else
             {
@@ -508,7 +500,9 @@ namespace Bambi5_Launcher
         {
             Check_Form.Open_Form(servers[ci]);
         }
-        public Task Load_Player_Count()
+        int stc = 0;
+        int etc = 0;
+        public Task Load_Server_Status()
         {
             return Task.Run(() =>
             {
@@ -516,18 +510,60 @@ namespace Bambi5_Launcher
                 {
                     for (int i = 0; i < servers.Count; i++)
                     {
-                        string str = "https://" + servers[i].host + ":" + servers[i].dispatch + "/status/server";
-                        Debug.Print(str);
-                        Index_Get ig = Classes.Get_for_Index(str);
-                        if (ig.Use_time >= 0 && ig.StatusCode == System.Net.HttpStatusCode.OK)
+                        int s = i;
+                        while(stc - etc >=3)
                         {
-                            Def_status.Root df = JsonConvert.DeserializeObject<Def_status.Root>(ig.Result);
-                            Servers_listView.Items[i].SubItems[4].Text = df.status.playerCount + "";
+                            Thread.Sleep(250);
                         }
-                        else
+                        Task.Run(() =>
                         {
-                            Servers_listView.Items[i].SubItems[4].Text = "N/A";
-                        }
+                            stc++;
+                            try
+                            {
+                                string str = "https://" + servers[s].host + ":" + servers[s].dispatch + "/status/server";
+                                Debug.Print(str);
+                                Index_Get ig = Classes.Get_for_Index(str);
+                                if (ig.Use_time >= 0 && ig.StatusCode == System.Net.HttpStatusCode.OK)
+                                {
+                                    Def_status.Root df = JsonConvert.DeserializeObject<Def_status.Root>(ig.Result);
+                                    Servers_listView.Items[s].SubItems[4].Text = df.status.playerCount.ToString();
+                                    Servers_listView.Items[s].SubItems[5].Text = df.status.version;
+                                }
+                                else
+                                {
+                                    Servers_listView.Items[s].SubItems[4].Text = "N/A";
+                                    Servers_listView.Items[s].SubItems[5].Text = "N/A";
+                                }
+                                try
+                                {
+                                    Ping ping = new Ping();
+                                start:
+                                    PingReply pr = ping.Send(servers[s].host, 1000);
+                                    if (pr.RoundtripTime == 0)
+                                    {
+                                        goto start;
+                                    }
+                                    Servers_listView.Items[s].SubItems[6].Text = pr.RoundtripTime + "ms";
+                                }
+                                catch (Exception ex)
+                                {
+                                    Servers_listView.Items[s].SubItems[6].Text = "N/A";
+                                }
+                            }
+                            catch (NullReferenceException e)
+                            {
+                                Debug.Print("加载状态出错:" + e.Message);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.Print("加载状态出错:" + e.Message);
+                            }
+                            finally
+                            {
+                                etc++;
+                            }
+                        });
+                        Thread.Sleep(50);
                     }
                 }
                 catch (Exception ex)
@@ -539,7 +575,31 @@ namespace Bambi5_Launcher
 
         private void Status_timer_Tick(object sender, EventArgs e)
         {
-            Load_Player_Count();
+            Load_Server_Status();
+        }
+
+        private void Main_Form_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            System.Environment.Exit(0);
+        }
+
+        private void Find_GameExe_button_Click(object sender, EventArgs e)
+        {
+            string path = Classes.GameRegReader.GetGameExePath();
+            if (path == null)
+            {
+                MessageBox.Show("自动寻找路径失败", "", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if(DialogResult.Yes == MessageBox.Show("找到游戏路径:\n"+path+ "\n点击“是”：设置为游戏路径\n点击“否”：不设为游戏路径", "", MessageBoxButtons.YesNo, MessageBoxIcon.Information))
+            lc.config.Game_Path = path;
+            Game_Path_textBox.Text = lc.config.Game_Path;
+            Save_Local_Config();
+        }
+
+        private void Servers_List_tabPage_Leave(object sender, EventArgs e)
+        {
+            Status_timer.Enabled = false;
         }
     }
 }

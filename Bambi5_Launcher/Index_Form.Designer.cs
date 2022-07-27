@@ -1,4 +1,4 @@
-﻿namespace Bambi5_Launcher
+﻿namespace Collei_Launcher
 {
     partial class Index_Form
     {
@@ -223,17 +223,17 @@
             // Server_Status_timer
             // 
             this.Server_Status_timer.Enabled = true;
-            this.Server_Status_timer.Interval = 5000;
+            this.Server_Status_timer.Interval = 2500;
             this.Server_Status_timer.Tick += new System.EventHandler(this.Server_Status_timer_Tick);
             // 
             // Check_button
             // 
             this.Check_button.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.Check_button.Location = new System.Drawing.Point(386, 362);
+            this.Check_button.Location = new System.Drawing.Point(364, 362);
             this.Check_button.Name = "Check_button";
-            this.Check_button.Size = new System.Drawing.Size(100, 50);
+            this.Check_button.Size = new System.Drawing.Size(122, 50);
             this.Check_button.TabIndex = 56;
-            this.Check_button.Text = "检查连接";
+            this.Check_button.Text = "检查服务器";
             this.Check_button.UseVisualStyleBackColor = true;
             this.Check_button.Click += new System.EventHandler(this.Check_button_Click);
             // 
@@ -242,7 +242,7 @@
             this.Turn_Proxy_button.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.Turn_Proxy_button.Location = new System.Drawing.Point(218, 362);
             this.Turn_Proxy_button.Name = "Turn_Proxy_button";
-            this.Turn_Proxy_button.Size = new System.Drawing.Size(162, 50);
+            this.Turn_Proxy_button.Size = new System.Drawing.Size(140, 50);
             this.Turn_Proxy_button.TabIndex = 57;
             this.Turn_Proxy_button.Text = "仅启动代理";
             this.Turn_Proxy_button.UseVisualStyleBackColor = true;
